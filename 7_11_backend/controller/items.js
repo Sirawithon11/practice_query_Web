@@ -66,10 +66,11 @@ exports.getItems = async (req,res,next)=> {
       
         query = query.skip(skip).limit(limit);
         // — เพิ่ม skip() และ limit() ให้กับ query เพื่อทำ pagination
-      
+        let totalsConst ;
         // ถ้าขอหน้าที่เกิน จะ throw error
         if (req.query.page) {
           const totalDocs = await modelItem.countDocuments(JSON.parse(queryStr));
+          totalsConst = totalDocs ;
           // — นับจำนวนเอกสารทั้งหมดที่ตรงกับ filter
           if (skip >= totalDocs) {
             return res.status(404).json({
@@ -92,7 +93,8 @@ exports.getItems = async (req,res,next)=> {
         res.status(200).json({
           success: true,
           amount: items.length,
-          data: items
+          data: items,
+          total : totalsConst
         });
         // — ส่ง response กลับ client: สถานะ success, จำนวนรายการ, และ data จริง
       } catch (err) {
@@ -134,6 +136,14 @@ exports.getItem = async (req,res,next)=> {
 
 exports.createItem = async (req,res,next)=> {
     try{
+        const {price} = req.body ;
+        if (price > 100) { //กรณีมีการสร้างเงื่อนไข ต่างๆ
+            return res.status(400).json({
+                success: false,
+                message: 'ราคามากกว่า 100',
+                alert: true   // ส่ง flag ให้ frontend แสดง alert
+            });
+        }
         const items = await modelItem.create(req.body) ;
         console.log(items) ; // items ที่ได้เป็น  Js Object เลย เพราะ mongoose ช่วย เนื่องจาก ต้องมีการนำค่าไปเก็บใน DB
         // แต่ใน fronted ต้องแปลง Json เป็น Js object โดยใช้ .json ก่อน
