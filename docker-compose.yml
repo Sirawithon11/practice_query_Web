@@ -1,0 +1,33 @@
+version: '3.8' # ระบุ version ของ docker compose file
+
+services:  # เริ่มต้นกลุ่ม services (แต่ละ service คือ container 1 ตัวขึ้นไป)
+  app: # service แรก, ชื่อ app (ใช้รัน Node.js backend)
+    container_name: node_backnedV2 # ชื่อ container ที่จะสร้าง
+    build: 
+      context: ./7_11_backend   # path ของโฟลเดอร์ที่ใช้ build image (source code, Dockerfile)
+      dockerfile: Dockerfile    # ชื่อไฟล์ Dockerfile ที่จะใช้ build image
+    ports:
+      - "5050:5000"  # map port 5050 (host) -> 5000 (container) ให้เข้าผ่าน localhost:5050 ได้
+    volumes:
+      - ./7_11_backend:/usr/src/app    # sync โค้ดจาก 7_11_backend (host) เข้า /usr/src/app (container)
+      - /usr/src/app/node_modules      # สร้าง anonymous volume แยก node_modules ของ container ไม่ให้ชนกับ host
+    env_file:
+      - ./7_11_backend/config/config.env
+    depends_on:
+      - db  # รอให้ service db ขึ้นก่อน app จะ start
+
+  db:  # service ที่สอง, สำหรับ MongoDB
+    image: mongo:6   # ใช้ image mongo เวอร์ชัน 6
+    container_name: mongo-db  # ตั้งชื่อ container ว่า mongo-db
+    restart: always           # ถ้า container ล่ม ให้ start ใหม่อัตโนมัติ
+    ports:
+      - "27017:27017"         # map port 27017 (host) -> 27017 (container) คือ port มาตรฐานของ MongoDB
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: Sirawithon11   # สร้าง user root สำหรับ mongo (รหัสสำหรับเข้า database นี้ ใน conatiner)
+      MONGO_INITDB_ROOT_PASSWORD: i1HStiZtG8ss0OPI # กำหนด password สำหรับ root (รหัสสำหรับเข้า database นี้ ใน conatiner)
+    volumes:
+      - MY_mongodb:/data/db  # ใช้ volume MY_mongodb เพื่อเก็บ data ถาวรไว้ที่ path /data/db ใน container(data/db เป็น config ที่  mongodb กำหนดให้ทุกคน)
+
+volumes:
+  MY_mongodb:  # ประกาศ volume ชื่อ MY_mongodb (ใช้เก็บข้อมูล mongo ถาวร)
+    driver: local # ใช้ driver local (เก็บข้อมูลไว้ในเครื่อง host)

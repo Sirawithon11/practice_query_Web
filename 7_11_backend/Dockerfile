@@ -2,7 +2,8 @@
 FROM node:20
 
 # ตั้ง working directory ใน container (สิ่งที่เรา copy หรือ ติดตั้งจะไปอยู่ใน app directory ของ docker)
-WORKDIR /app
+WORKDIR /WORKDIR /usr/src/app
+
 
 # คัดลอกไฟล์ package.json และ package-lock.json (หรือ yarn.lock ถ้าใช้ yarn)
 COPY package*.json ./
